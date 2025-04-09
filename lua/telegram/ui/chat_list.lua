@@ -639,10 +639,13 @@ function M.select_next_chat()
 	local cursor_pos = api.nvim_win_get_cursor(state.window)
 	local current_line = cursor_pos[1] - 1
 
+	if current_line < state.chat_start then
+		return
+	end
 	-- Find the next chat line
 	local next_line = nil
 	for i = current_line + 1, api.nvim_buf_line_count(state.buffer) - 1 do
-		if state.line_to_chat_map[i] then
+		if state.line_to_chat_map[i - state.chat_start] then
 			next_line = i
 			break
 		end
@@ -651,7 +654,7 @@ function M.select_next_chat()
 	-- If no next chat found, wrap around to the first chat
 	if not next_line then
 		for i = 0, current_line do
-			if state.line_to_chat_map[i] then
+			if state.line_to_chat_map[i - state.chat_start] then
 				next_line = i
 				break
 			end
@@ -665,7 +668,7 @@ function M.select_next_chat()
 		if chat_id then
 			state.selected_chat = state.chats[chat_id]
 			update_display()
-			events.emit(events.events.UI_CHAT_SELECTED, state.selected_chat)
+			Core.events.emit(Core.events.events.UI_CHAT_SELECTED, state.selected_chat)
 		end
 	end
 end
